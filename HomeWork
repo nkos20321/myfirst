@@ -1,1 +1,76 @@
+# -*- coding: utf-8 -*-
+import requests
+import json
+import sqlite3
+#========================================================================================================================
+conn=sqlite3.connect(r"D:\pythonworkspace\venvs\hometest_basic_venv\home_test\test123.sqlite")      #連接資料庫檔案  test.sqlite
+cursor=conn.cursor()
+#========================================================================================================================
+#========================================================================================================================
+#建立資料庫
+def create(table_name):
+    # CREATE="""CREATE TABLE  if not exists {} (name  LongText, protein_structure  LongText)""".format(xx)
+    CREATE=""" CREATE TABLE if not exists {}(
+            article_id INT PRIMARY KEY     NOT NULL,
+            title      TEXT    NOT NULL,
+            published_at    INT     NOT NULL,
+            image        TEXT NOT NULL
 
+    )""".format(table_name)
+    conn.execute(CREATE)
+    conn.commit()
+#========================================================================================================================
+#========================================================================================================================
+#寫入資料
+def insert():
+    for items in content_list:
+        title = items['title']
+        article_id = items['article_id']
+        published_at = items['published_at']
+        image = items['image']
+        conn.execute('INSERT OR IGNORE into data values(?,?,?,?)',(article_id ,title,published_at,image))
+        print(article_id,'\n'+title,'\n'+published_at,'\n'+image)
+
+    conn.commit()
+
+#========================================================================================================================
+#========================================================================================================================
+
+create(table_name='data')
+input_num = 100
+remainder =(input_num%10)
+num = (input_num//10)
+if remainder==0:
+
+    for i in range(num):
+        page_start = str(i * 10)
+
+        url = 'https://171tiyu.com/api/v2/GetArticles?articleType=2&limit=10&offset='+page_start
+
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'}
+
+        response = requests.get(url=url, headers=headers, verify=False)
+        content = response.content.decode("cp950", "ignore")
+        content_list = json.loads(content)['Data']["articles"]
+
+
+        insert()
+
+else:
+
+    for i in range(num+1):
+        page_start = str(i * 10)
+
+        url = 'https://171tiyu.com/api/v2/GetArticles?articleType=2&limit=10&offset='+page_start
+
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36'}
+
+        response = requests.get(url=url, headers=headers, verify=False)
+        content = response.content.decode("cp950", "ignore")
+        content_list = json.loads(content)['Data']["articles"]
+
+
+        insert()
+
+
+conn.close()
